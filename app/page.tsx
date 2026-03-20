@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-const API_KEY        = "3XZDZDF0KYBMHRDLK8NG697DLK8NG";
-const BASE_URL       = "https://api.metals.dev/v1";
-const OZ_TO_10G      = 10 / 31.1035;
-const LS_KEY         = "metal_price_history_v1";
+const API_KEY = "3XZDZDF0KYBMHRDLK8NG697DLK8NG";
+const BASE_URL = "https://api.metals.dev/v1";
+const OZ_TO_10G = 10 / 31.1035;
+const LS_KEY = "metal_price_history_v1";
 const LS_REFRESH_KEY = "metal_hard_refresh_v1";
-const MAX_REFRESHES  = 5;
-const COOLDOWN_MS    = 10 * 60 * 1000; // 10 minutes
+const MAX_REFRESHES = 5;
+const COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 interface DayRecord {
@@ -60,31 +60,31 @@ interface TokenSet {
 // ─── M3 TOKENS ────────────────────────────────────────────────────────────────
 const TOKEN: Record<MetalKey, TokenSet> = {
   gold: {
-    primary:    "#E65100",
-    onPrimary:  "#FFFFFF",
-    container:  "#FFE0B2",
-    surface:    "#FFF8F2",
-    chip:       "#FFF3E0",
+    primary: "#E65100",
+    onPrimary: "#FFFFFF",
+    container: "#FFE0B2",
+    surface: "#FFF8F2",
+    chip: "#FFF3E0",
     chipBorder: "#FFCC80",
-    label:      "#BF360C",
-    text:       "#1A0E00",
+    label: "#BF360C",
+    text: "#1A0E00",
   },
   silver: {
-    primary:    "#0277BD",
-    onPrimary:  "#FFFFFF",
-    container:  "#B3E5FC",
-    surface:    "#F0F7FF",
-    chip:       "#E1F5FE",
+    primary: "#0277BD",
+    onPrimary: "#FFFFFF",
+    container: "#B3E5FC",
+    surface: "#F0F7FF",
+    chip: "#E1F5FE",
     chipBorder: "#81D4FA",
-    label:      "#01579B",
-    text:       "#001A2C",
+    label: "#01579B",
+    text: "#001A2C",
   },
 };
 
 const R = { sm: "10px", md: "16px", lg: "20px", xl: "28px", full: "9999px" } as const;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-const fmtINR   = (v: number): string => "₹" + Math.round(v).toLocaleString("en-IN");
+const fmtINR = (v: number): string => "₹" + Math.round(v).toLocaleString("en-IN");
 const todayISO = (): string => new Date().toISOString().split("T")[0];
 
 const dayLabel = (iso: string): string => {
@@ -151,7 +151,7 @@ async function fetchLatest(): Promise<ApiResponse> {
 function buildEntries(records: DayRecord[], metal: MetalKey): DayEntry[] {
   return records.map((r, i) => {
     const price = r[metal];
-    const prev  = i > 0 ? records[i - 1][metal] : price;
+    const prev = i > 0 ? records[i - 1][metal] : price;
     return { date: r.date, label: r.label, price, change: i === 0 ? 0 : ((price - prev) / prev) * 100 };
   });
 }
@@ -173,13 +173,13 @@ function SparkLine({ history, color, bg }: { history: DayEntry[]; color: string;
     return `C ${cx},${py} ${cx},${y} ${x},${y}`;
   }).join(" ");
   const area = `${curve} L ${pts[pts.length - 1][0]},${H} L ${pts[0][0]},${H} Z`;
-  const id   = "g" + color.replace(/[^a-z0-9]/gi, "");
+  const id = "g" + color.replace(/[^a-z0-9]/gi, "");
   const last = pts[pts.length - 1];
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%", overflow: "visible", display: "block" }}>
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor={color} stopOpacity="0.3" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
           <stop offset="100%" stopColor={color} stopOpacity="0.01" />
         </linearGradient>
       </defs>
@@ -295,8 +295,8 @@ function HardRefreshButton({ tok, onRefresh, refreshing }: {
   refreshing: boolean;
 }) {
   const [rsState, setRsState] = useState<RefreshState>(loadRefreshState);
-  const [now, setNow]         = useState(Date.now());
-  const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [now, setNow] = useState(Date.now());
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Tick every second to update countdown
   useEffect(() => {
@@ -304,18 +304,18 @@ function HardRefreshButton({ tok, onRefresh, refreshing }: {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  const remaining  = Math.max(0, rsState.lastUsedAt + COOLDOWN_MS - now);
+  const remaining = Math.max(0, rsState.lastUsedAt + COOLDOWN_MS - now);
   const inCooldown = remaining > 0;
-  const exhausted  = rsState.usedCount >= MAX_REFRESHES;
-  const disabled   = refreshing || inCooldown || exhausted;
-  const usesLeft   = MAX_REFRESHES - rsState.usedCount;
+  const exhausted = rsState.usedCount >= MAX_REFRESHES;
+  const disabled = refreshing || inCooldown || exhausted;
+  const usesLeft = MAX_REFRESHES - rsState.usedCount;
 
   const handleClick = () => {
     if (disabled) return;
     const next: RefreshState = {
-      date:        todayISO(),
-      usedCount:   rsState.usedCount + 1,
-      lastUsedAt:  Date.now(),
+      date: todayISO(),
+      usedCount: rsState.usedCount + 1,
+      lastUsedAt: Date.now(),
     };
     saveRefreshState(next);
     setRsState(next);
@@ -397,8 +397,8 @@ function HardRefreshButton({ tok, onRefresh, refreshing }: {
         {exhausted
           ? "Resets tomorrow"
           : inCooldown
-          ? `Next refresh in ${fmtCountdown(remaining)}`
-          : `${usesLeft} of ${MAX_REFRESHES} refreshes left today`
+            ? `Next refresh in ${fmtCountdown(remaining)}`
+            : `${usesLeft} of ${MAX_REFRESHES} refreshes left today`
         }
       </div>
     </div>
@@ -407,25 +407,25 @@ function HardRefreshButton({ tok, onRefresh, refreshing }: {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [metal,     setMetal]     = useState<MetalKey>("gold");
-  const [records,   setRecords]   = useState<DayRecord[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [refreshing,setRefreshing]= useState(false);
-  const [error,     setError]     = useState<string | null>(null);
-  const [selDay,    setSelDay]    = useState(0);
-  const [lastUpd,   setLastUpd]   = useState("");
+  const [metal, setMetal] = useState<MetalKey>("gold");
+  const [records, setRecords] = useState<DayRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selDay, setSelDay] = useState(0);
+  const [lastUpd, setLastUpd] = useState("");
 
   const tok = TOKEN[metal];
 
   // ── Core fetch & save ─────────────────────────────────────────────────────
   const doFetch = useCallback(async (): Promise<DayRecord[] | null> => {
-    const data   = await fetchLatest();
-    const today  = todayISO();
-    const gold   = parseFloat((data.metals["gold"]   * OZ_TO_10G).toFixed(2));
+    const data = await fetchLatest();
+    const today = todayISO();
+    const gold = parseFloat((data.metals["gold"] * OZ_TO_10G).toFixed(2));
     const silver = parseFloat((data.metals["silver"] * OZ_TO_10G).toFixed(2));
     const record: DayRecord = { date: today, label: dayLabel(today), gold, silver };
 
-    const stored  = loadStorage();
+    const stored = loadStorage();
     const without = stored.records.filter(r => r.date !== today);
     const updated: StoredHistory = { records: [...without, record], lastFetchDate: today };
     saveStorage(updated);
@@ -435,7 +435,7 @@ export default function App() {
   // ── Init: load cache, fetch only if new day ───────────────────────────────
   const init = useCallback(async () => {
     const stored = loadStorage();
-    const today  = todayISO();
+    const today = todayISO();
 
     if (stored.records.length > 0) {
       setRecords(stored.records);
@@ -486,12 +486,12 @@ export default function App() {
 
   const switchMetal = (m: MetalKey) => { setMetal(m); setSelDay(records.length - 1); };
 
-  const history  = buildEntries(records, metal);
-  const current  = history[history.length - 1]?.price ?? 0;
-  const prev     = history[history.length - 2]?.price ?? current;
-  const dayChg   = history.length > 1 ? ((current - prev) / prev) * 100 : 0;
+  const history = buildEntries(records, metal);
+  const current = history[history.length - 1]?.price ?? 0;
+  const prev = history[history.length - 2]?.price ?? current;
+  const dayChg = history.length > 1 ? ((current - prev) / prev) * 100 : 0;
   const totalChg = history.length > 1 ? ((current - history[0].price) / history[0].price) * 100 : 0;
-  const isUp     = dayChg >= 0;
+  const isUp = dayChg >= 0;
   const selEntry = history[selDay] ?? null;
 
   return (
@@ -500,7 +500,7 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700;800&family=Google+Sans+Display:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
-        html, body { height: 100%; background: #E8EAF0; font-family: 'Google Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+        html, body { min-height: 100%; height: auto; background: #E8EAF0; font-family: 'Google Sans', sans-serif; -webkit-font-smoothing: antialiased; }
         @keyframes shimmer  { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes fadein   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-ring { 0% { opacity: 0.5; } 70% { opacity: 0; } 100% { opacity: 0; } }
@@ -513,7 +513,7 @@ export default function App() {
         <div style={{
           width: "100%", maxWidth: "430px", minHeight: "100dvh",
           background: "#FFFFFF", display: "flex", flexDirection: "column",
-          animation: "fadein 0.45s ease forwards", position: "relative", overflow: "hidden",
+          animation: "fadein 0.45s ease forwards", position: "relative", overflowX: "hidden",
         }}>
 
           {/* Tonal wash */}
@@ -584,14 +584,14 @@ export default function App() {
                 <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingLeft: "4px", paddingRight: "20px", paddingTop: "2px", paddingBottom: "6px", scrollbarWidth: "none" }}>
                   {loading && records.length === 0
                     ? Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} style={{ minWidth: "88px", height: "90px", borderRadius: R.xl, flexShrink: 0, background: `linear-gradient(90deg,${tok.primary}15,${tok.primary}28,${tok.primary}15)`, backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite" }} />
-                      ))
+                      <div key={i} style={{ minWidth: "88px", height: "90px", borderRadius: R.xl, flexShrink: 0, background: `linear-gradient(90deg,${tok.primary}15,${tok.primary}28,${tok.primary}15)`, backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite" }} />
+                    ))
                     : history.map((entry, i) => (
-                        <DayChip key={entry.date} entry={entry} tok={tok}
-                          isToday={i === history.length - 1}
-                          selected={selDay === i}
-                          onClick={() => setSelDay(i)} />
-                      ))
+                      <DayChip key={entry.date} entry={entry} tok={tok}
+                        isToday={i === history.length - 1}
+                        selected={selDay === i}
+                        onClick={() => setSelDay(i)} />
+                    ))
                   }
                 </div>
               </div>
@@ -706,10 +706,10 @@ export default function App() {
                 marginBottom: "16px",
               }}>
                 {(["gold", "silver"] as MetalKey[]).map(k => {
-                  const on  = metal === k;
-                  const t   = TOKEN[k];
+                  const on = metal === k;
+                  const t = TOKEN[k];
                   return (
-                    <button key={k} onClick={() => switchMetal(k)} style={{
+                    <button id={`metal-switcher-${k}`} key={k} onClick={() => switchMetal(k)} style={{
                       flex: 1, padding: "clamp(12px,3dvh,16px) 0",
                       background: on ? t.primary : "transparent",
                       border: "none", cursor: "pointer", borderRadius: R.full,
