@@ -500,7 +500,7 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700;800&family=Google+Sans+Display:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
-        html, body { min-height: 100%; height: auto; background: #E8EAF0; font-family: 'Google Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+        html, body { height: 100%; overflow: hidden; background: #E8EAF0; font-family: 'Google Sans', sans-serif; -webkit-font-smoothing: antialiased; }
         @keyframes shimmer  { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes fadein   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-ring { 0% { opacity: 0.5; } 70% { opacity: 0; } 100% { opacity: 0; } }
@@ -509,11 +509,11 @@ export default function App() {
         @keyframes spin     { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ width: "100vw", minHeight: "100dvh", background: "#E8EAF0", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100vw", height: "100dvh", background: "#E8EAF0", display: "flex", justifyContent: "center", overflow: "hidden" }}>
         <div style={{
-          width: "100%", maxWidth: "430px", minHeight: "100dvh",
+          width: "100%", maxWidth: "430px", height: "100dvh",
           background: "#FFFFFF", display: "flex", flexDirection: "column",
-          animation: "fadein 0.45s ease forwards", position: "relative", overflowX: "hidden",
+          animation: "fadein 0.45s ease forwards", position: "relative", overflow: "hidden",
         }}>
 
           {/* Tonal wash */}
@@ -523,201 +523,211 @@ export default function App() {
             transition: "background 0.4s ease", zIndex: 0,
           }} />
 
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1, padding: "0 20px" }}>
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+            {/* ── SCROLLABLE CONTENT ── */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "0 20px", width: "100%", scrollbarWidth: "none" }}>
 
-            {/* ── HEADER ── */}
-            <div style={{ paddingTop: "5dvh", paddingBottom: "2dvh" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", color: tok.label, textTransform: "uppercase", marginBottom: "6px" }}>
-                    {metal === "gold" ? "Gold · XAU" : "Silver · XAG"} · per 10g
+              {/* ── HEADER ── */}
+              <div style={{ paddingTop: "5dvh", paddingBottom: "2dvh" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", color: tok.label, textTransform: "uppercase", marginBottom: "6px" }}>
+                      {metal === "gold" ? "Gold · XAU" : "Silver · XAG"} · per 10g
+                    </div>
+                    <div key={metal + current} style={{
+                      fontFamily: "'Google Sans Display',sans-serif",
+                      fontSize: "clamp(40px, 11vw, 58px)", fontWeight: 800, lineHeight: 1,
+                      color: refreshing ? tok.label : tok.primary,
+                      letterSpacing: "-2px", animation: "price-in 0.35s ease",
+                      transition: "color 0.3s",
+                    }}>
+                      {loading && records.length === 0
+                        ? <Skel w="200px" h="52px" r="10px" c={tok.primary} />
+                        : fmtINR(current)
+                      }
+                    </div>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#9E9E9E", marginTop: "6px" }}>per 10 grams</div>
                   </div>
-                  <div key={metal + current} style={{
-                    fontFamily: "'Google Sans Display',sans-serif",
-                    fontSize: "clamp(40px, 11vw, 58px)", fontWeight: 800, lineHeight: 1,
-                    color: refreshing ? tok.label : tok.primary,
-                    letterSpacing: "-2px", animation: "price-in 0.35s ease",
-                    transition: "color 0.3s",
-                  }}>
+
+                  {!loading && !error && history.length > 1 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end", paddingTop: "8px" }}>
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: "5px",
+                        background: isUp ? "#E8F5E9" : "#FFEBEE",
+                        borderRadius: R.full, padding: "7px 14px",
+                        fontSize: "14px", fontWeight: 800,
+                        color: isUp ? "#1B5E20" : "#B71C1C",
+                        boxShadow: `0 2px 10px ${isUp ? "#4CAF5030" : "#F4433630"}`,
+                      }}>
+                        {isUp ? "↑" : "↓"} {isUp ? "+" : ""}{dayChg.toFixed(2)}%
+                      </div>
+                      <div style={{ fontSize: "11px", fontWeight: 600, color: "#757575", textAlign: "right" }}>
+                        All time <span style={{ color: totalChg >= 0 ? "#2E7D32" : "#C62828", fontWeight: 800 }}>
+                          {totalChg >= 0 ? "+" : ""}{totalChg.toFixed(2)}%
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "10px", color: "#BDBDBD", textAlign: "right" }}>
+                        {records.length} day{records.length !== 1 ? "s" : ""} tracked
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── HISTORY CHIPS ── */}
+              <div style={{ marginBottom: "16px", animation: "slide-up 0.4s ease 0.1s both" }}>
+                {records.length > 0 && (
+                  <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: tok.label, marginBottom: "12px" }}>
+                    Price History · {records.length} day{records.length !== 1 ? "s" : ""}
+                  </div>
+                )}
+                {/* Bleed edge-to-edge, overflow visible so LIVE badge + shadows never clip */}
+                <div style={{ marginLeft: "-20px", marginRight: "-20px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "18px", paddingBottom: "14px", overflow: "visible" }}>
+                  <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingLeft: "4px", paddingRight: "20px", paddingTop: "2px", paddingBottom: "6px", scrollbarWidth: "none" }}>
                     {loading && records.length === 0
-                      ? <Skel w="200px" h="52px" r="10px" c={tok.primary} />
-                      : fmtINR(current)
+                      ? Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} style={{ minWidth: "88px", height: "90px", borderRadius: R.xl, flexShrink: 0, background: `linear-gradient(90deg,${tok.primary}15,${tok.primary}28,${tok.primary}15)`, backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite" }} />
+                      ))
+                      : history.map((entry, i) => (
+                        <DayChip key={entry.date} entry={entry} tok={tok}
+                          isToday={i === history.length - 1}
+                          selected={selDay === i}
+                          onClick={() => setSelDay(i)} />
+                      ))
                     }
                   </div>
-                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#9E9E9E", marginTop: "6px" }}>per 10 grams</div>
+                </div>
+              </div>
+
+              {/* ── GRAPH ── */}
+              <div style={{
+                background: tok.surface, borderRadius: R.xl, padding: "16px 10px 10px",
+                marginBottom: "14px", border: `1.5px solid ${tok.chipBorder}`,
+                boxShadow: `0 2px 16px ${tok.primary}12`,
+                animation: "slide-up 0.4s ease 0.15s both", position: "relative",
+              }}>
+                <div style={{
+                  position: "absolute", top: "12px", left: "16px",
+                  fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
+                  color: tok.label, opacity: 0.6, textTransform: "uppercase",
+                }}>
+                  {records.length < 2 ? "Chart (needs 2+ days)" : "Price Chart"}
                 </div>
 
-                {!loading && !error && history.length > 1 && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end", paddingTop: "8px" }}>
-                    <div style={{
-                      display: "inline-flex", alignItems: "center", gap: "5px",
-                      background: isUp ? "#E8F5E9" : "#FFEBEE",
-                      borderRadius: R.full, padding: "7px 14px",
-                      fontSize: "14px", fontWeight: 800,
-                      color: isUp ? "#1B5E20" : "#B71C1C",
-                      boxShadow: `0 2px 10px ${isUp ? "#4CAF5030" : "#F4433630"}`,
-                    }}>
-                      {isUp ? "↑" : "↓"} {isUp ? "+" : ""}{dayChg.toFixed(2)}%
+                {loading && records.length === 0 ? (
+                  <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Skel w="90%" h="100px" r="10px" c={tok.primary} />
+                  </div>
+                ) : error && records.length === 0 ? (
+                  <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
+                    <div style={{ fontSize: "13px", color: "#C62828", fontWeight: 700 }}>⚠ {error}</div>
+                    <button onClick={init} style={{
+                      background: tok.primary, border: "none", borderRadius: R.full,
+                      padding: "8px 18px", cursor: "pointer",
+                      fontFamily: "'Google Sans',sans-serif", fontSize: "12px", fontWeight: 700, color: tok.onPrimary,
+                    }}>Retry</button>
+                  </div>
+                ) : history.length < 2 ? (
+                  <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ fontSize: "13px", color: tok.label, fontWeight: 600, textAlign: "center", opacity: 0.7, padding: "0 20px" }}>
+                      Come back tomorrow —<br />chart builds as history grows
                     </div>
-                    <div style={{ fontSize: "11px", fontWeight: 600, color: "#757575", textAlign: "right" }}>
-                      All time <span style={{ color: totalChg >= 0 ? "#2E7D32" : "#C62828", fontWeight: 800 }}>
-                        {totalChg >= 0 ? "+" : ""}{totalChg.toFixed(2)}%
-                      </span>
-                    </div>
-                    <div style={{ fontSize: "10px", color: "#BDBDBD", textAlign: "right" }}>
-                      {records.length} day{records.length !== 1 ? "s" : ""} tracked
-                    </div>
+                  </div>
+                ) : (
+                  <div style={{ height: "18dvh", paddingTop: "20px" }}>
+                    <SparkLine history={history} color={tok.primary} bg={tok.surface} />
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* ── HISTORY CHIPS ── */}
-            <div style={{ marginBottom: "16px", animation: "slide-up 0.4s ease 0.1s both" }}>
-              {records.length > 0 && (
-                <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: tok.label, marginBottom: "12px" }}>
-                  Price History · {records.length} day{records.length !== 1 ? "s" : ""}
+              {/* ── SELECTED DAY ── */}
+              {selEntry && (
+                <div style={{
+                  background: tok.surface, borderRadius: R.lg, padding: "16px 20px",
+                  border: `2px solid ${tok.chipBorder}`,
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  marginBottom: "14px", boxShadow: `0 2px 12px ${tok.primary}10`,
+                  animation: "slide-up 0.4s ease 0.2s both",
+                }}>
+                  <div>
+                    <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", color: tok.label, textTransform: "uppercase", marginBottom: "4px" }}>
+                      Selected Day
+                    </div>
+                    <div style={{ fontFamily: "'Google Sans Display',sans-serif", fontSize: "20px", fontWeight: 700, color: tok.text }}>
+                      {selEntry.label}
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#9E9E9E", marginTop: "2px" }}>{selEntry.date}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{
+                      fontFamily: "'Google Sans Display',sans-serif",
+                      fontSize: "clamp(22px,5vw,28px)", fontWeight: 800,
+                      color: tok.primary, letterSpacing: "-0.5px", lineHeight: 1,
+                    }}>{fmtINR(selEntry.price)}</div>
+                    {selDay > 0 && (
+                      <div style={{ fontSize: "12px", fontWeight: 700, marginTop: "4px", color: selEntry.change >= 0 ? "#2E7D32" : "#C62828" }}>
+                        {selEntry.change >= 0 ? "↑ +" : "↓ "}{selEntry.change.toFixed(3)}%
+                      </div>
+                    )}
+                    <div style={{ fontSize: "10px", color: "#9E9E9E", marginTop: "2px" }}>per 10g</div>
+                  </div>
                 </div>
               )}
-              {/* Bleed edge-to-edge, overflow visible so LIVE badge + shadows never clip */}
-              <div style={{ marginLeft: "-20px", marginRight: "-20px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "18px", paddingBottom: "14px", overflow: "visible" }}>
-                <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingLeft: "4px", paddingRight: "20px", paddingTop: "2px", paddingBottom: "6px", scrollbarWidth: "none" }}>
-                  {loading && records.length === 0
-                    ? Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} style={{ minWidth: "88px", height: "90px", borderRadius: R.xl, flexShrink: 0, background: `linear-gradient(90deg,${tok.primary}15,${tok.primary}28,${tok.primary}15)`, backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite" }} />
-                    ))
-                    : history.map((entry, i) => (
-                      <DayChip key={entry.date} entry={entry} tok={tok}
-                        isToday={i === history.length - 1}
-                        selected={selDay === i}
-                        onClick={() => setSelDay(i)} />
-                    ))
-                  }
+
+              {/* ── FLOW BOTTOM ── */}
+              <div style={{ paddingTop: "12px", paddingBottom: "32px" }}>
+
+                {/* Live dot + last fetched */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
+                  <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: refreshing ? "#FF9800" : "#4CAF50", boxShadow: `0 0 0 3px ${refreshing ? "#FF980022" : "#4CAF5022"}`, animation: "pulse-ring 2s ease-out infinite" }} />
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "#9E9E9E" }}>
+                    {refreshing ? "Fetching live price…" : `INR · per 10g${lastUpd ? ` · fetched ${dayLabel(lastUpd)}` : ""}`}
+                  </div>
                 </div>
+
+                {/* Hard Refresh Button */}
+                <div style={{ marginBottom: "12px", display: "flex", justifyContent: "center" }}>
+                  <HardRefreshButton tok={tok} onRefresh={hardRefresh} refreshing={refreshing} />
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div style={{
+                    background: "#FFEBEE", borderRadius: R.md, padding: "10px 14px",
+                    fontSize: "12px", color: "#C62828", fontWeight: 600,
+                    textAlign: "center", marginBottom: "10px",
+                  }}>⚠ {error}</div>
+                )}
               </div>
+
             </div>
 
-            {/* ── GRAPH ── */}
+            {/* ── STICKY TABS FOOTER ── */}
             <div style={{
-              background: tok.surface, borderRadius: R.xl, padding: "16px 10px 10px",
-              marginBottom: "14px", border: `1.5px solid ${tok.chipBorder}`,
-              boxShadow: `0 2px 16px ${tok.primary}12`,
-              animation: "slide-up 0.4s ease 0.15s both", position: "relative",
+              padding: "10px 20px env(safe-area-inset-bottom, 20px)",
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(12px)",
+              borderTop: "1px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 -4px 12px rgba(0,0,0,0.03)",
+              zIndex: 10,
             }}>
               <div style={{
-                position: "absolute", top: "12px", left: "16px",
-                fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em",
-                color: tok.label, opacity: 0.6, textTransform: "uppercase",
-              }}>
-                {records.length < 2 ? "Chart (needs 2+ days)" : "Price Chart"}
-              </div>
-
-              {loading && records.length === 0 ? (
-                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Skel w="90%" h="100px" r="10px" c={tok.primary} />
-                </div>
-              ) : error && records.length === 0 ? (
-                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ fontSize: "13px", color: "#C62828", fontWeight: 700 }}>⚠ {error}</div>
-                  <button onClick={init} style={{
-                    background: tok.primary, border: "none", borderRadius: R.full,
-                    padding: "8px 18px", cursor: "pointer",
-                    fontFamily: "'Google Sans',sans-serif", fontSize: "12px", fontWeight: 700, color: tok.onPrimary,
-                  }}>Retry</button>
-                </div>
-              ) : history.length < 2 ? (
-                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ fontSize: "13px", color: tok.label, fontWeight: 600, textAlign: "center", opacity: 0.7, padding: "0 20px" }}>
-                    Come back tomorrow —<br />chart builds as history grows
-                  </div>
-                </div>
-              ) : (
-                <div style={{ height: "18dvh", paddingTop: "20px" }}>
-                  <SparkLine history={history} color={tok.primary} bg={tok.surface} />
-                </div>
-              )}
-            </div>
-
-            {/* ── SELECTED DAY ── */}
-            {selEntry && (
-              <div style={{
-                background: tok.surface, borderRadius: R.lg, padding: "16px 20px",
-                border: `2px solid ${tok.chipBorder}`,
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                marginBottom: "14px", boxShadow: `0 2px 12px ${tok.primary}10`,
-                animation: "slide-up 0.4s ease 0.2s both",
-              }}>
-                <div>
-                  <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.1em", color: tok.label, textTransform: "uppercase", marginBottom: "4px" }}>
-                    Selected Day
-                  </div>
-                  <div style={{ fontFamily: "'Google Sans Display',sans-serif", fontSize: "20px", fontWeight: 700, color: tok.text }}>
-                    {selEntry.label}
-                  </div>
-                  <div style={{ fontSize: "10px", color: "#9E9E9E", marginTop: "2px" }}>{selEntry.date}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{
-                    fontFamily: "'Google Sans Display',sans-serif",
-                    fontSize: "clamp(22px,5vw,28px)", fontWeight: 800,
-                    color: tok.primary, letterSpacing: "-0.5px", lineHeight: 1,
-                  }}>{fmtINR(selEntry.price)}</div>
-                  {selDay > 0 && (
-                    <div style={{ fontSize: "12px", fontWeight: 700, marginTop: "4px", color: selEntry.change >= 0 ? "#2E7D32" : "#C62828" }}>
-                      {selEntry.change >= 0 ? "↑ +" : "↓ "}{selEntry.change.toFixed(3)}%
-                    </div>
-                  )}
-                  <div style={{ fontSize: "10px", color: "#9E9E9E", marginTop: "2px" }}>per 10g</div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ flex: 1 }} />
-
-            {/* ── BOTTOM ── */}
-            <div style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)", paddingTop: "12px" }}>
-
-              {/* Live dot + last fetched */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
-                <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: refreshing ? "#FF9800" : "#4CAF50", boxShadow: `0 0 0 3px ${refreshing ? "#FF980022" : "#4CAF5022"}`, animation: "pulse-ring 2s ease-out infinite" }} />
-                <div style={{ fontSize: "11px", fontWeight: 600, color: "#9E9E9E" }}>
-                  {refreshing ? "Fetching live price…" : `INR · per 10g${lastUpd ? ` · fetched ${dayLabel(lastUpd)}` : ""}`}
-                </div>
-              </div>
-
-              {/* Hard Refresh Button */}
-              <div style={{ marginBottom: "12px", display: "flex", justifyContent: "center" }}>
-                <HardRefreshButton tok={tok} onRefresh={hardRefresh} refreshing={refreshing} />
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div style={{
-                  background: "#FFEBEE", borderRadius: R.md, padding: "10px 14px",
-                  fontSize: "12px", color: "#C62828", fontWeight: 600,
-                  textAlign: "center", marginBottom: "10px",
-                }}>⚠ {error}</div>
-              )}
-
-              {/* M3 segmented tab */}
-              <div style={{
                 display: "flex", background: "#F3F4F6", borderRadius: R.full,
-                padding: "5px", gap: "5px", boxShadow: "inset 0 1px 5px rgba(0,0,0,0.09)",
-                marginBottom: "16px",
+                padding: "4px", gap: "4px", boxShadow: "inset 0 1px 4px rgba(0,0,0,0.08)",
               }}>
                 {(["gold", "silver"] as MetalKey[]).map(k => {
                   const on = metal === k;
                   const t = TOKEN[k];
                   return (
                     <button id={`metal-switcher-${k}`} key={k} onClick={() => switchMetal(k)} style={{
-                      flex: 1, padding: "clamp(12px,3dvh,16px) 0",
+                      flex: 1, padding: "clamp(10px, 2.5dvh, 14px) 0",
                       background: on ? t.primary : "transparent",
                       border: "none", cursor: "pointer", borderRadius: R.full,
                       fontFamily: "'Google Sans',sans-serif",
-                      fontSize: "clamp(14px,3.5vw,16px)", fontWeight: on ? 800 : 500,
+                      fontSize: "clamp(13px,3.2vw,15px)", fontWeight: on ? 800 : 500,
                       color: on ? t.onPrimary : "#757575",
-                      boxShadow: on ? `0 4px 16px ${t.primary}55` : "none",
-                      transform: on ? "scale(1.03)" : "scale(1)",
+                      boxShadow: on ? `0 4px 12px ${t.primary}55` : "none",
+                      transform: on ? "scale(1.02)" : "scale(1)",
                       transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
                     }}>
                       {k === "gold" ? "✦  Gold" : "◇  Silver"}
