@@ -509,16 +509,16 @@ export default function App() {
         @keyframes spin     { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ width: "100vw", minHeight: "100svh", background: "#E8EAF0", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100vw", minHeight: "100dvh", background: "#E8EAF0", display: "flex", justifyContent: "center" }}>
         <div style={{
-          width: "100%", maxWidth: "430px", minHeight: "100svh",
+          width: "100%", maxWidth: "430px", minHeight: "100dvh",
           background: "#FFFFFF", display: "flex", flexDirection: "column",
           animation: "fadein 0.45s ease forwards", position: "relative", overflow: "hidden",
         }}>
 
           {/* Tonal wash */}
           <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: "40svh",
+            position: "absolute", top: 0, left: 0, right: 0, height: "40dvh",
             background: `linear-gradient(160deg, ${tok.container} 0%, ${tok.surface} 65%, #fff 100%)`,
             transition: "background 0.4s ease", zIndex: 0,
           }} />
@@ -526,7 +526,7 @@ export default function App() {
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1, padding: "0 20px" }}>
 
             {/* ── HEADER ── */}
-            <div style={{ paddingTop: "5svh", paddingBottom: "2svh" }}>
+            <div style={{ paddingTop: "5dvh", paddingBottom: "2dvh" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
                   <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.14em", color: tok.label, textTransform: "uppercase", marginBottom: "6px" }}>
@@ -613,11 +613,11 @@ export default function App() {
               </div>
 
               {loading && records.length === 0 ? (
-                <div style={{ height: "18svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Skel w="90%" h="100px" r="10px" c={tok.primary} />
                 </div>
               ) : error && records.length === 0 ? (
-                <div style={{ height: "18svh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
+                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "8px" }}>
                   <div style={{ fontSize: "13px", color: "#C62828", fontWeight: 700 }}>⚠ {error}</div>
                   <button onClick={init} style={{
                     background: tok.primary, border: "none", borderRadius: R.full,
@@ -626,13 +626,13 @@ export default function App() {
                   }}>Retry</button>
                 </div>
               ) : history.length < 2 ? (
-                <div style={{ height: "18svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ height: "18dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <div style={{ fontSize: "13px", color: tok.label, fontWeight: 600, textAlign: "center", opacity: 0.7, padding: "0 20px" }}>
                     Come back tomorrow —<br />chart builds as history grows
                   </div>
                 </div>
               ) : (
-                <div style={{ height: "18svh", paddingTop: "20px" }}>
+                <div style={{ height: "18dvh", paddingTop: "20px" }}>
                   <SparkLine history={history} color={tok.primary} bg={tok.surface} />
                 </div>
               )}
@@ -710,7 +710,7 @@ export default function App() {
                   const t   = TOKEN[k];
                   return (
                     <button key={k} onClick={() => switchMetal(k)} style={{
-                      flex: 1, padding: "clamp(12px,3svh,16px) 0",
+                      flex: 1, padding: "clamp(12px,3dvh,16px) 0",
                       background: on ? t.primary : "transparent",
                       border: "none", cursor: "pointer", borderRadius: R.full,
                       fontFamily: "'Google Sans',sans-serif",
