@@ -704,16 +704,21 @@ export default function App() {
 
             {/* ── STICKY TABS FOOTER ── */}
             <div style={{
-              padding: "10px 20px env(safe-area-inset-bottom, 20px)",
+              paddingTop: "16px",
+              paddingRight: "20px",
+              paddingBottom: "14px",
+              paddingLeft: "20px",
               background: "rgba(255,255,255,0.85)",
-              backdropFilter: "blur(12px)",
+              backdropFilter: "blur(14px)",
               borderTop: "1px solid rgba(0,0,0,0.06)",
-              boxShadow: "0 -4px 12px rgba(0,0,0,0.03)",
+              boxShadow: "0 -6px 16px rgba(0,0,0,0.04)",
               zIndex: 10,
+              touchAction: "none",
+              userSelect: "none",
             }}>
               <div style={{
                 display: "flex", background: "#F3F4F6", borderRadius: R.full,
-                padding: "4px", gap: "4px", boxShadow: "inset 0 1px 4px rgba(0,0,0,0.08)",
+                padding: "6px", gap: "6px", boxShadow: "inset 0 1px 4px rgba(0,0,0,0.1)",
               }}>
                 {(["gold", "silver"] as MetalKey[]).map(k => {
                   const on = metal === k;
