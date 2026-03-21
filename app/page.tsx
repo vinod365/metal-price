@@ -85,13 +85,24 @@ const R = { sm: "10px", md: "16px", lg: "20px", xl: "28px", full: "9999px" } as 
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const fmtINR = (v: number): string => "₹" + Math.round(v).toLocaleString("en-IN");
-const todayISO = (): string => new Date().toISOString().split("T")[0];
+
+// Uses LOCAL date (not UTC) so IST users get the correct calendar day
+const todayISO = (): string => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 
 const dayLabel = (iso: string): string => {
   const today = todayISO();
   if (iso === today) return "Today";
-  const d = new Date(); d.setDate(d.getDate() - 1);
-  if (iso === d.toISOString().split("T")[0]) return "Yesterday";
+  // Compute yesterday using local date math
+  const yd = new Date();
+  yd.setDate(yd.getDate() - 1);
+  const yesterdayISO = `${yd.getFullYear()}-${String(yd.getMonth() + 1).padStart(2, "0")}-${String(yd.getDate()).padStart(2, "0")}`;
+  if (iso === yesterdayISO) return "Yesterday";
   return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {
     weekday: "short", day: "numeric", month: "short",
   });
@@ -108,7 +119,47 @@ const fmtCountdown = (ms: number): string => {
 function loadStorage(): StoredHistory {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw) as StoredHistory;
+    if (!raw) return { records: [], lastFetchDate: "" };
+
+    const data = JSON.parse(raw) as StoredHistory;
+    const today = todayISO();
+    const yd = new Date(); yd.setDate(yd.getDate() - 1);
+    const yesterdayISO = `${yd.getFullYear()}-${String(yd.getMonth() + 1).padStart(2, "0")}-${String(yd.getDate()).padStart(2, "0")}`;
+
+    // MIGRATION / DATA CORRECTION:
+    // 1. Refresh labels for all records (Today / Yesterday / Date)
+    // 2. IST/UTC Bug Fix: If the last record was stored on "Yesterday" UTC but it was actually
+    //    morning IST (Today), and we haven't fetched for Today local yet, we move that record to Today.
+    let migrated = [...data.records];
+    if (migrated.length > 0) {
+      const last = migrated[migrated.length - 1];
+      // If last record says "Yesterday" but it was actually stored as today's local fetch date?
+      // Or if the user just saw "Today" becoming "Yesterday" incorrectly.
+      // We check if we have a duplicate or if we need to 'bump' it.
+      if (last.date === yesterdayISO && data.lastFetchDate === yesterdayISO) {
+        // Only bump if the current local time is morning/daytime, 
+        // suggesting they were on the app during the IST/UTC midnight flip window.
+        const hour = new Date().getHours();
+        if (hour >= 0 && hour < 12) { // Heuristic: it's morning/early day
+          last.date = today;
+          // We modified it, we should update lastFetchDate too in the returned object
+          data.lastFetchDate = today;
+        }
+      }
+    }
+
+    // De-duplicate if migration or bug caused two records for the same local day
+    const uniqueRecords: DayRecord[] = [];
+    const seen = new Set();
+    for (let i = migrated.length - 1; i >= 0; i--) {
+      const r = migrated[i];
+      if (!seen.has(r.date)) {
+        uniqueRecords.unshift({ ...r, label: dayLabel(r.date) });
+        seen.add(r.date);
+      }
+    }
+
+    return { ...data, records: uniqueRecords };
   } catch { /* ignore */ }
   return { records: [], lastFetchDate: "" };
 }
